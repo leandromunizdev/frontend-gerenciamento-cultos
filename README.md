@@ -34,6 +34,10 @@ cd backend-gerenciamento-cultos
 docker-compose -f docker-compose.yml up -d
 ```
 
+# Caso o backend não suba:
+
+- A depender do SO que for executar, é necessário trocar a sequencia de fim de linha por de CRLF para LF do arquivo entrypoint.sh na raiz do backend, isso pode ser feito no VS Code no canto inferior direito com o arquivo aberto e depois execute novamente o docker-compose acima.
+
 3. **Acesse a aplicação**
 
 - Frontend: http://localhost
