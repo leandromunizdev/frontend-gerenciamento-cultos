@@ -49,6 +49,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
+const LOCAL_STORAGE_KEY = 'formulario_pessoa_cache';
 
 const Pessoas = () => {
   const { hasPermission } = useAuth();
@@ -179,22 +180,25 @@ const Pessoas = () => {
     setPaginacao(prev => ({ ...prev, page: 1 }));
   };
 
-  const abrirModal = (pessoa = null) => {
-    if (pessoa) {
-      setPessoaEditando(pessoa);
-      setDadosFormulario({
-        nome_completo: pessoa.nome_completo || '',
-        telefone: pessoa.telefone || '',
-        email: pessoa.email || '',
-        data_nascimento: pessoa.data_nascimento || '',
-        cep: '',
-        endereco: pessoa.endereco || '',
-        cargo_eclesiastico_id: pessoa.cargo_eclesiastico_id || '',
-        departamento_id: pessoa.departamento_id || '',
-        ativo: pessoa.ativo !== undefined ? pessoa.ativo : true
-      });
+const abrirModal = (pessoa = null) => {
+  if (pessoa) {
+    setPessoaEditando(pessoa);
+    setDadosFormulario({
+      nome_completo: pessoa.nome_completo || '',
+      telefone: pessoa.telefone || '',
+      email: pessoa.email || '',
+      data_nascimento: pessoa.data_nascimento || '',
+      cep: '',
+      endereco: pessoa.endereco || '',
+      cargo_eclesiastico_id: pessoa.cargo_eclesiastico_id || '',
+      departamento_id: pessoa.departamento_id || '',
+      ativo: pessoa.ativo !== undefined ? pessoa.ativo : true
+    });
+  } else {
+    const cache = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (cache) {
+      setDadosFormulario(JSON.parse(cache));
     } else {
-      setPessoaEditando(null);
       setDadosFormulario({
         nome_completo: '',
         telefone: '',
@@ -207,8 +211,10 @@ const Pessoas = () => {
         ativo: true
       });
     }
-    setModalAberto(true);
-  };
+    setPessoaEditando(null);
+  }
+  setModalAberto(true);
+};
 
   const fecharModal = () => {
     setModalAberto(false);
@@ -252,6 +258,7 @@ const Pessoas = () => {
         }
       }
       setError(null)
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
     } catch (err) {
       console.error('Erro ao salvar pessoa:', err);
       setError(err.response?.data?.error || 'Erro ao salvar pessoa');
@@ -281,12 +288,18 @@ const Pessoas = () => {
     }
   };
 
-  const handleInputChange = (campo, valor) => {
-    setDadosFormulario(prev => ({
-      ...prev,
-      [campo]: valor
-    }));
+const handleInputChange = (campo, valor) => {
+  const novosDados = {
+    ...dadosFormulario,
+    [campo]: valor
   };
+
+  setDadosFormulario(novosDados);
+
+  if (!pessoaEditando) {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(novosDados));
+  }
+};
 
   if (loading && pessoas.length === 0) {
     return (
